@@ -1,0 +1,58 @@
+name: Build and Deploy pipeline to Azure Function
+
+on:
+  [push]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17.6
+
+    - name: Unit tests
+      run: make test
+
+    - name: Code coverage
+      run: make coverage
+
+    - name: Lint
+      run: |
+        go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.43.0
+        make lint
+
+    - name: Build
+      run: make build_linux
+
+    - name: Upload
+      uses: actions/upload-artifact@v2
+      with:
+        name: app
+        path: ./app
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - uses: actions/checkout@v2
+    - name: Download
+      uses: actions/download-artifact@v2
+      with:
+        name: app
+
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: 'Run Azure Functions Action'
+      uses: Azure/functions-action@v1
+      with:
+        app-name: ${{ secrets.FUNCTION_APP }}
+        package: ${{ github.workspace }}
