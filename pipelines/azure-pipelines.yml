@@ -1,0 +1,79 @@
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  GOPATH: '$(Agent.BuildDirectory)/gopath' # Go workspace path
+  GOROOT: '$(Agent.BuildDirectory)/go' # Go installation path
+  GOBIN:  '$(GOPATH)/bin' # Go binaries path
+  AzureSubscription: $(AZURE_SUBSCRIPTION)
+  FunctionApp: $(FUNCTION_APP)
+
+stages:
+- stage: Build
+  jobs:
+  - job: BuildJob
+    steps:
+    - task: GoTool@0
+      inputs:
+        version: '1.17.6'
+      displayName: Install Go
+
+    - script: |
+        echo '##vso[task.prependpath]$(GOBIN)'
+        echo '##vso[task.prependpath]$(GOROOT)/bin'
+      displayName: Add GOPATH
+
+    - script: make test
+      displayName: 'Unit tests'
+
+    - script: make coverage
+      displayName: 'Code coverage'
+
+    - script: |
+        go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.43.0
+        make lint
+      displayName: 'Lint'
+
+    - script: make build_linux
+      displayName: 'Build'
+
+    - task: CopyFiles@2
+      inputs:
+        contents: 'app'
+        targetFolder: '$(Build.ArtifactStagingDirectory)'
+      displayName: 'Copy binary for later use'
+
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: $(Build.ArtifactStagingDirectory)/app
+        artifactName: gobinary
+      displayName: 'Publish binary for later use'
+
+- stage: Release
+  dependsOn: build
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  jobs:
+  - job: ReleaseJob
+    steps:
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifact: gobinary
+        path: $(Build.SourcesDirectory)
+      displayName: 'Download binary'
+
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: '$(Build.Repository.LocalPath)'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+        replaceExistingArchive: true
+      displayName: 'Archiving binaries'
+
+    - task: AzureFunctionApp@1
+      inputs:
+        azureSubscription: $(AzureSubscription)
+        appType: 'functionAppLinux'
+        appName: $(FunctionApp)
+        package: '$(System.ArtifactsDirectory)/**/*.zip'
+      displayName: 'Publishing build artifacts'

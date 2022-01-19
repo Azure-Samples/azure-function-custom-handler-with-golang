@@ -1,0 +1,29 @@
+name: Build pipeline to Azure Function Custom Handler
+
+on:
+  [push]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17.6
+
+    - name: Unit tests
+      run: make test
+
+    - name: Code coverage
+      run: make coverage
+
+    - name: Lint
+      run: |
+        go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.43.0
+        make lint
+
+    - name: Build
+      run: make build_linux
