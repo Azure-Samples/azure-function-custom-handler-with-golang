@@ -42,6 +42,7 @@ It is recommended that you use a [devcontainer](https://code.visualstudio.com/do
 
 1. Open the terminal in VScode
 1. Run `make start`
+1. Choose `6. custom` for worker runtime
 1. Comfirm the endpoint URLs appear in the terminal
 
 ### Send a HTTP request
