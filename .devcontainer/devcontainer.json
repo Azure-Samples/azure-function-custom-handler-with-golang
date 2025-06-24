@@ -1,62 +1,40 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/go
 {
 	"name": "Azure Function Custom Handler With Golang",
-	"dockerFile": "Dockerfile",
+	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+	"image": "mcr.microsoft.com/devcontainers/go:1-1.24-bookworm",
+	"features": {
+		// Warning: Upstream does not currently support AArch64 / arm64 architectures.
+  		// If you are on an AArch64 / arm64 system, comment out the azure-functions-core-tools feature below.
+		// https://github.com/jlaundry/devcontainer-features
+		"ghcr.io/jlaundry/devcontainer-features/azure-functions-core-tools:1": {}
+	},
 
-	"extensions": [
-			"ms-vscode.go",
-			"golang.go",
-			"davidanson.vscode-markdownlint",
-			"shardulm94.trailing-spaces",
-			"IBM.output-colorizer",
-			"ms-azuretools.vscode-azurefunctions",
-	],
+	"containerEnv": {
+    	"DOTNET_SYSTEM_GLOBALIZATION_INVARIANT": "1"
+	},
 
-	"settings": {
-			"go.gopath": "/go",
-			"go.lintTool": "golangci-lint",
-			"go.lintFlags": [
-				"--fast"
-			],
-			"go.useLanguageServer": true,
-			"[go]": {
-					"editor.formatOnSave": true,
-					"editor.codeActionsOnSave": {
-							"source.organizeImports": true,
-					},
-					// Optional: Disable snippets, as they conflict with completion ranking.
-					"editor.snippetSuggestions": "none",
-			},
-			"[go.mod]": {
-					"editor.formatOnSave": true,
-					"editor.codeActionsOnSave": {
-							"source.organizeImports": true,
-					},
-			},
-			"gopls": {
-					// Add parameter placeholders when completing a function.
-					"usePlaceholders": true,
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
 
-					// If true, enable additional analyses with staticcheck.
-					// Warning: This will significantly increase memory usage.
-					"staticcheck": false,
-			},
-			"markdownlint.config": {
-				"no-inline-html": {
-					"allowed_elements": [ "details", "summary", "p" ]
-				}
-			},
-			"markdownlint.ignore": [
-				"LICENSE.md",
-			],
-		},
+	// Use 'postCreateCommand' to run commands after the container is created.
+	// "postCreateCommand": "go version",
 
-	"runArgs": [
-			"--cap-add=SYS_PTRACE",
-			"--security-opt",
-			"seccomp=unconfined",
-			"--network=host",
-	],
-	"mounts": [
-		"source=${env:HOME}${env:USERPROFILE}/.ssh,target=/root/.ssh,type=bind,readonly",
-	],
+	// Configure tool-specific properties.
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-vscode.go",
+				"golang.go",
+				"davidanson.vscode-markdownlint",
+				"shardulm94.trailing-spaces",
+				"IBM.output-colorizer",
+				"ms-azuretools.vscode-azurefunctions"
+			]
+		}
+	}
+
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "root"
 }

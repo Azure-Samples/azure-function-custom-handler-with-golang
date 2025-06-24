@@ -17,6 +17,17 @@ It is recommended that you use a [devcontainer](https://code.visualstudio.com/do
 
 ### Launch devcontainer
 
+> ⚠️ Important: AArch64 / arm64 Architecture Notice (24 June 2025)
+>
+> **Known Issue:**
+> The `azure-functions-core-tools` devcontainer feature does **not** work on AArch64 / arm64 architectures due to upstream limitations.
+>
+> - If you are using an AArch64 / arm64 system, you must **comment out** the `azure-functions-core-tools` feature in your `.devcontainer/devcontainer.json`.
+> - However, `azure-functions-core-tools` is still required for local development and running Azure Functions.
+> - You will need to **install Azure Functions Core Tools manually** inside your devcontainer (or on your local machine, if not using a devcontainer).
+>
+> For installation instructions and the latest documentation, see the official repo: [Azure/azure-functions-core-tools](https://github.com/Azure/azure-functions-core-tools)
+
 1. Make sure your docker is running
 1. Open this project with VScode
 1. Click the green icon in bottom left labelled "Open in Container"
